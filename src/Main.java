@@ -104,13 +104,9 @@ public class Main {
     
     public static void main(String[] args) {
         UndoStringBuilder str = new UndoStringBuilder("abc");
-        System.out.println(str);
-        str.append(125.85);
-        str.insert(2, "wqeqwe");
-        str.appendCodePoint(45);
-        System.out.println(str);
+        str.listenerSetter(new MyListener());
+        str.append("waed");
+        str.insert(3, "12414");
         str.undoOperation();
-        str.undoOperation();
-        System.out.println(str);
     }
 }
