@@ -1,10 +1,9 @@
-import java.util.Arrays;
+import javax.xml.crypto.dom.DOMCryptoContext;
+import java.util.*;
 
 public class Main {
 
     private static void getArrayCharacteristics(double[] array) {
-
-
         double max = array[0];
         double min = array[0];
         double mean = array[0];
@@ -101,12 +100,55 @@ public class Main {
         }
         return -1;
     }
-    
+
+    static <T> Collection<T> removeDubles(Collection<T> collection) {
+        return new HashSet<>(collection); //запомнить!
+    }
+
+    static List<Double> addRandomElemets(List<Double> list, int n) {
+        for(int i = 0; i < n; i++)
+            list.add(Math.random());
+        return list;
+    }
+
+    static Double cooseRandomElement(List<Double> list) {
+        double rnd = Math.random()*list.size();
+        return list.get((int)rnd);
+    }
+
+    static <T> HashMap<T, Integer> arrayToMap(T[] ts) {
+        HashMap<T, Integer> freq = new HashMap<>();
+
+        for(int i = 0; i < ts.length; i++) {
+            freq.compute(ts[i], (k, v) -> v == null ? 1 : v+1); //запомнить!
+        }
+        return freq;
+    }
+
+    static <T, V> Map<V, Collection<T>> inverse (Map<T, V> map) {
+        Map<V, Collection<T>> res = new HashMap<>();
+
+        for(T value : map.keySet()){
+            V key = map.get(value);
+            if(res.get(key) == null){
+                HashSet<T> set = new HashSet<>();
+                res.put(key, set);
+            }
+            res.get(key).add(value);
+        }
+        return res;
+    }
+
+    //System.currentTimeMillis() //запомнить!
+    //for(Map.Entry entry : hashMap.entrySet()) //запомнить!
     public static void main(String[] args) {
-        UndoStringBuilder str = new UndoStringBuilder("abc");
-        str.listenerSetter(new MyListener());
-        str.append("waed");
-        str.insert(3, "12414");
-        str.undoOperation();
+        Map<Integer, Integer> tmp = new HashMap<>();
+        tmp.put(1,1);
+        tmp.put(2,2);
+        tmp.put(3,2);
+        tmp.put(4,1);
+        Map<Integer, Collection<Integer>> res = inverse(tmp);
+        for(Map.Entry entry : res.entrySet())
+            System.out.println(entry.getKey() + " " + entry.getValue());
     }
 }

@@ -2,7 +2,7 @@ import java.util.HashMap;
 
 public class FrequencyDict {
 
-    static String normaliseText(String text) {
+    private static String normaliseText(String text) {
 
         return text.replaceAll("[^a-zA-Z ]", "").toLowerCase().replaceAll("\\s{2,}", " ").trim();
     }

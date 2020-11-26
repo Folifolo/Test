@@ -2,13 +2,13 @@ import java.util.Stack;
 
 public class UndoStringBuilder{
 
-    OnSBChangeListener listener;
+    private OnSBChangeListener listener;
 
-    void listenerSetter(OnSBChangeListener listener) {
+    public void listenerSetter(OnSBChangeListener listener) {
         this.listener=listener;
     }
 
-    void notifyListener(){
+    private void notifyListener(){
         if(listener!=null)
             listener.change(this);
     }
@@ -17,18 +17,18 @@ public class UndoStringBuilder{
         void undo();
     }
 
-    void undoOperation() {
+    public void undoOperation() {
         buffer.pop().undo();
     }
 
-    StringBuilder stringBuilder;
-    Stack<Undoable> buffer = new Stack<Undoable>();
+    private StringBuilder stringBuilder;
+    private Stack<Undoable> buffer = new Stack<Undoable>();
 
-    UndoStringBuilder(String str) {
+    public UndoStringBuilder(String str) {
         stringBuilder = new StringBuilder(str);
     }
 
-    UndoStringBuilder append(boolean b) {
+    public UndoStringBuilder append(boolean b) {
         stringBuilder.append(b);
         buffer.push(() -> stringBuilder.delete(
                 stringBuilder.length()- Boolean.toString(b).length(),
@@ -37,7 +37,7 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder append(char c) {
+    public UndoStringBuilder append(char c) {
         stringBuilder.append(c);
         buffer.push(() -> stringBuilder.delete(
                 stringBuilder.length()- 1,
@@ -46,7 +46,7 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder append(char[] str) {
+    public UndoStringBuilder append(char[] str) {
         stringBuilder.append(str);
         buffer.push(() -> stringBuilder.delete(
                 stringBuilder.length() - str.length,
@@ -55,7 +55,7 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder append(String str) {
+    public UndoStringBuilder append(String str) {
         stringBuilder.append(str);
         buffer.push(() -> stringBuilder.delete(
                 stringBuilder.length() - str.length(),
@@ -64,7 +64,7 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder append(double d) {
+    public UndoStringBuilder append(double d) {
         stringBuilder.append(d);
         buffer.push(() -> stringBuilder.delete(
                 stringBuilder.length() - Double.toString(d).length(),
@@ -73,7 +73,7 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder delete(int start, int end) {
+    public UndoStringBuilder delete(int start, int end) {
         String deletedSeq = stringBuilder.substring(start, end);
         stringBuilder.delete(start, end);
         buffer.push(() -> stringBuilder.insert(start, deletedSeq));
@@ -81,14 +81,14 @@ public class UndoStringBuilder{
         return this;
     }
 
-    UndoStringBuilder insert(int offset, String str){
+    public UndoStringBuilder insert(int offset, String str){
         stringBuilder.insert(offset, str);
         buffer.push(() -> stringBuilder.delete(offset, offset+str.length()));
         notifyListener();
         return this;
     }
 
-    UndoStringBuilder appendCodePoint(int codePoint) {
+    public UndoStringBuilder appendCodePoint(int codePoint) {
         stringBuilder.appendCodePoint(codePoint);
         buffer.push(() -> stringBuilder.deleteCharAt(stringBuilder.length()-1));
         notifyListener();
