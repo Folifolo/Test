@@ -37,8 +37,6 @@ public class WikipediaParser {
             for(int i = 0; i < results.length; i++)
                 System.out.println(results[i]);
 
-        //System.out.println(con);
-
     }
 
     private static String[] WikiSearchTitles(String request) {
@@ -50,7 +48,7 @@ public class WikipediaParser {
         final HttpURLConnection connection;
         try {
             final URL url = new URL(WIKIPEDIA_URL + request);
-            connection = getHttpURLConnection(url);
+            connection = (HttpURLConnection) url.openConnection();
         } catch (IOException e) {
             System.out.println("Wrong url");
             return null;
@@ -75,14 +73,6 @@ public class WikipediaParser {
         return titles;
     }
 
-    private static HttpURLConnection getHttpURLConnection(URL url) throws IOException {
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setConnectTimeout(CONNECTION_TIME);
-        connection.setReadTimeout(CONNECTION_TIME);
-        return connection;
-    }
 
     static class WikiSearch {
             final String batchcomplete;
