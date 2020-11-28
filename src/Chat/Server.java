@@ -54,7 +54,7 @@ final public class Server {
             }
         }
 
-        void sendMessage(String message) {
+        void sendMessage(Message message) {
             writer.println(message);
             writer.flush();
         }
@@ -73,7 +73,7 @@ final public class Server {
 
     class ServerThread extends Thread {
         Client client;
-        String receivedMsg;
+        Message receivedMsg;
 
         ServerThread (Client clientSocket) {
             this.client = clientSocket;
@@ -82,11 +82,14 @@ final public class Server {
         @Override
         public void run() {
             try {
-                client.sendMessage(String.format(HELLO_MSG, client.getNumber()));
+                client.sendMessage(new Message(String.format(HELLO_MSG, client.getNumber()), "Server"));
                 while(true) {
                     {
-                        receivedMsg = client.readLine();
-                        client.sendMessage(receivedMsg);
+                        if(client.isReaderReady()) {
+                            receivedMsg = new Message(client.readLine(), String.valueOf(client.number));
+                            for(Client anotherClient : clients)
+                                anotherClient.sendMessage(receivedMsg);
+                        }
                         if(Arrays.asList(QUIT_COMMANDS).contains(receivedMsg)) {
                             System.out.println(String.format("Server # %d is shutting down", client.getNumber()));
                             break;
