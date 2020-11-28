@@ -5,17 +5,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Stack;
 
 import static Chat.Chat.QUIT_COMMANDS;
 
 final public class Server {
-    private final String HELLO_MSG = "Hello, client # %d";
     private ServerSocket serverSocket;
     private ArrayList<Client> clients;
     private int clientNumbers;
+    private ArrayList<Message> history;
+    Object commonMessagesLock = new Object();
 
     public Server(int port) {
         clients = new ArrayList<>();
+        history = new ArrayList<>();
         clientNumbers = 0;
         try {
             serverSocket = new ServerSocket(port);
@@ -39,13 +42,13 @@ final public class Server {
 
     static final class Client {
         private Socket socket;
-        private int number;
+        private String name;
         private BufferedReader reader;
         private PrintWriter writer;
 
         Client(Socket socket, int number) {
             this.socket = socket;
-            this.number = number;
+            name = "Anonymous";
             try {
                 reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
                 writer = new PrintWriter(this.socket.getOutputStream());
@@ -59,9 +62,14 @@ final public class Server {
             writer.flush();
         }
 
-        int getNumber() {
-            return number;
+        void setName(String name) {
+            this.name = name;
         }
+
+        public String getName() {
+            return name;
+        }
+
         boolean isReaderReady() throws IOException {
             return reader.ready();
         }
@@ -79,23 +87,39 @@ final public class Server {
             this.client = clientSocket;
         }
 
+        private void WelcomeMessages(Client client) {
+            for(Message msg : history) {
+                client.sendMessage(msg);
+            }
+            client.sendMessage(new Message("Enter your name", "Server"));
+        }
+
         @Override
         public void run() {
             try {
-                client.sendMessage(new Message(String.format(HELLO_MSG, client.getNumber()), "Server"));
+                WelcomeMessages(client);
+                client.setName(client.readLine());
+                client.sendMessage(new Message("Hello, " + client.getName(), "Server"));
                 while(true) {
-                    {
-                        if(client.isReaderReady()) {
-                            receivedMsg = new Message(client.readLine(), String.valueOf(client.number));
-                            for(Client anotherClient : clients)
+                    if(client.isReaderReady()) {
+                        synchronized (commonMessagesLock) {
+                            receivedMsg = new Message(client.readLine(), client.getName());
+                            history.add(receivedMsg);
+                            if (history.size() > 10)
+                                history.remove(0);
+                            for (Client anotherClient : clients) {
                                 anotherClient.sendMessage(receivedMsg);
-                        }
-                        if(Arrays.asList(QUIT_COMMANDS).contains(receivedMsg)) {
-                            System.out.println(String.format("Server # %d is shutting down", client.getNumber()));
-                            break;
+                            }
                         }
                     }
+                    if(Arrays.asList(QUIT_COMMANDS).contains(receivedMsg)) {
+                        for (Client anotherClient : clients) {
+                            anotherClient.sendMessage(new Message("User "+ client.getName() + " is disconnected"));
+                        }
+                        break;
+                    }
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

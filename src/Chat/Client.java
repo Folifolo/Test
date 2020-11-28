@@ -10,7 +10,7 @@ import java.util.Arrays;
 import static Chat.Chat.QUIT_COMMANDS;
 
 public class Client {
-    Socket clientSocket;
+    private Socket clientSocket;
 
     Client() {
         clientSocket = new Socket();
@@ -19,7 +19,10 @@ public class Client {
     void connect(String address, int port) {
         try {
             clientSocket.connect(new InetSocketAddress(address, port));
-
+        } catch (IOException e) {
+            System.out.println("Can't connect server");
+        }
+        try {
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
@@ -42,47 +45,11 @@ public class Client {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Connection error");
         }
-    }
-}
 
-class Client2 {
-    Socket clientSocket;
-
-    Client2() {
-        clientSocket = new Socket();
     }
 
-    void connect(String address, int port) {
-        try {
-            clientSocket.connect(new InetSocketAddress(address, port));
-
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
-
-            String message;
-            System.out.println(reader.readLine());
-
-            while (true)
-            {
-                Thread.sleep(5000);
-                message ="client test";
-                writer.println(message);
-                writer.flush();
-                System.out.println(reader.readLine());
-                if(Arrays.asList(QUIT_COMMANDS).contains(message)) {
-                    System.out.println("Client if shutting down");
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static void main(String[] args) {
         Thread client = new Thread(() -> new Client().connect("localhost", 1234));

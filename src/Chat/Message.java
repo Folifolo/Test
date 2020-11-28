@@ -1,9 +1,11 @@
 package Chat;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-class Message {
+class Message implements Serializable {
+    private static final long serialVersionUID = 1L;
     String text;
     Calendar date;
     String sender;
