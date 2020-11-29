@@ -24,7 +24,7 @@ final public class Server {
         Properties property = new Properties();
 
         try {
-            fis = new FileInputStream("src/config.XML");
+            fis = new FileInputStream("src/Chat/config.XML");
             property.load(fis);
             MAX_USERS = Integer.valueOf(property.getProperty("MAX_USERS"));
             PORT = Integer.valueOf(property.getProperty("PORT"));
