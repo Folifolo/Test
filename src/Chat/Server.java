@@ -4,17 +4,13 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Stack;
-
-import static Chat.Chat.QUIT_COMMANDS;
 
 final public class Server {
     private ServerSocket serverSocket;
     private ArrayList<Client> clients;
     private int clientNumbers;
     private ArrayList<Message> history;
-    Object commonMessagesLock = new Object();
+    private final Object commonMessagesLock = new Object();
 
     public Server(int port) {
         clients = new ArrayList<>();
@@ -28,7 +24,7 @@ final public class Server {
     }
 
     public final void openConnection() {
-        while(true) {
+        while (true) {
             try {
                 Client client = new Client(serverSocket.accept(), ++clientNumbers);
                 clients.add(client);
@@ -38,27 +34,28 @@ final public class Server {
                 System.out.println("Error when waiting for a connection");
             }
         }
+
     }
 
     static final class Client {
         private Socket socket;
         private String name;
-        private BufferedReader reader;
-        private PrintWriter writer;
+        private ObjectInputStream reader;
+        private ObjectOutputStream writer;
 
         Client(Socket socket, int number) {
             this.socket = socket;
             name = "Anonymous";
             try {
-                reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-                writer = new PrintWriter(this.socket.getOutputStream());
+                reader = new ObjectInputStream(this.socket.getInputStream());
+                writer = new ObjectOutputStream(this.socket.getOutputStream());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        void sendMessage(Message message) {
-            writer.println(message);
+        void sendMessage(Message message) throws IOException {
+            writer.writeObject(message);
             writer.flush();
         }
 
@@ -70,12 +67,9 @@ final public class Server {
             return name;
         }
 
-        boolean isReaderReady() throws IOException {
-            return reader.ready();
-        }
 
-        String readLine() throws IOException {
-            return reader.readLine();
+        Message readMessage() throws IOException, ClassNotFoundException {
+            return (Message) reader.readObject();
         }
     }
 
@@ -83,12 +77,12 @@ final public class Server {
         Client client;
         Message receivedMsg;
 
-        ServerThread (Client clientSocket) {
+        ServerThread(Client clientSocket) {
             this.client = clientSocket;
         }
 
-        private void WelcomeMessages(Client client) {
-            for(Message msg : history) {
+        private void WelcomeMessages(Client client) throws IOException {
+            for (Message msg : history) {
                 client.sendMessage(msg);
             }
             client.sendMessage(new Message("Enter your name", "Server"));
@@ -96,14 +90,15 @@ final public class Server {
 
         @Override
         public void run() {
+            Message clientMessage;
             try {
                 WelcomeMessages(client);
-                client.setName(client.readLine());
+                client.setName(client.readMessage().getText());
                 client.sendMessage(new Message("Hello, " + client.getName(), "Server"));
-                while(true) {
-                    if(client.isReaderReady()) {
+                while (true) {
+                    if ((clientMessage = client.readMessage()) != null) {
                         synchronized (commonMessagesLock) {
-                            receivedMsg = new Message(client.readLine(), client.getName());
+                            receivedMsg = new Message(clientMessage.getText(), client.getName());
                             history.add(receivedMsg);
                             if (history.size() > 10)
                                 history.remove(0);
@@ -112,15 +107,9 @@ final public class Server {
                             }
                         }
                     }
-                    if(Arrays.asList(QUIT_COMMANDS).contains(receivedMsg)) {
-                        for (Client anotherClient : clients) {
-                            anotherClient.sendMessage(new Message("User "+ client.getName() + " is disconnected"));
-                        }
-                        break;
-                    }
                 }
 
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }

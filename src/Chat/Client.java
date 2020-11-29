@@ -1,13 +1,9 @@
 package Chat;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.util.Arrays;
 
-import static Chat.Chat.QUIT_COMMANDS;
 
 public class Client {
     private Socket clientSocket;
@@ -22,29 +18,35 @@ public class Client {
         } catch (IOException e) {
             System.out.println("Can't connect server");
         }
+
         try {
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            ObjectOutputStream writer = new ObjectOutputStream(clientSocket.getOutputStream());
+            ObjectInputStream  reader = new ObjectInputStream(clientSocket.getInputStream());
             BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
 
-            String message = null;
-            System.out.println(reader.readLine());
+            ReaderThread serverReader = null;
 
-            while (true)
-            {
-                if(keyboardReader.ready()) {
-                    message = keyboardReader.readLine();
-                    writer.println(message);
+            Message keyboardMessage = null;
+            Message serverMessage = null;
+            if((serverMessage = (Message) reader.readObject()) != null)
+                System.out.println(serverMessage);
+
+            while (true) {
+                if (keyboardReader.ready()) {
+                    keyboardMessage = new Message(keyboardReader.readLine());
+                    writer.writeObject(keyboardMessage);
                     writer.flush();
                 }
-                if(reader.ready())
-                    System.out.println(reader.readLine());
-                if(Arrays.asList(QUIT_COMMANDS).contains(message)) {
-                    System.out.println("Client if shutting down");
-                    break;
+                if(serverReader == null){
+                   serverReader = new ReaderThread(reader);
+                   serverReader.start();
+                }
+                else if(serverReader.message != null) {
+                    System.out.println(serverReader.message);
+                    serverReader = null;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Connection error");
         }
 
