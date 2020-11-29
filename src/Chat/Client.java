@@ -21,14 +21,14 @@ public class Client {
 
         try {
             ObjectOutputStream writer = new ObjectOutputStream(clientSocket.getOutputStream());
-            ObjectInputStream  reader = new ObjectInputStream(clientSocket.getInputStream());
+            ObjectInputStream reader = new ObjectInputStream(clientSocket.getInputStream());
             BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
 
             ReaderThread serverReader = null;
 
             Message keyboardMessage = null;
             Message serverMessage = null;
-            if((serverMessage = (Message) reader.readObject()) != null)
+            if ((serverMessage = (Message) reader.readObject()) != null)
                 System.out.println(serverMessage);
 
             while (true) {
@@ -37,11 +37,10 @@ public class Client {
                     writer.writeObject(keyboardMessage);
                     writer.flush();
                 }
-                if(serverReader == null){
-                   serverReader = new ReaderThread(reader);
-                   serverReader.start();
-                }
-                else if(serverReader.message != null) {
+                if (serverReader == null) {
+                    serverReader = new ReaderThread(reader);
+                    serverReader.start();
+                } else if (serverReader.message != null) {
                     System.out.println(serverReader.message);
                     serverReader = null;
                 }
