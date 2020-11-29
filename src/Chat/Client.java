@@ -17,6 +17,7 @@ public class Client {
             clientSocket.connect(new InetSocketAddress(address, port));
         } catch (IOException e) {
             System.out.println("Can't connect server");
+            return;
         }
 
         try {
@@ -47,6 +48,7 @@ public class Client {
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Connection error");
+            return;
         }
 
     }

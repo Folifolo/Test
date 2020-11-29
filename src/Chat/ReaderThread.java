@@ -18,7 +18,8 @@ public class ReaderThread extends Thread {
                 try {
                     message = (Message) reader.readObject();
                 } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+                    System.out.println("Server is unavailable");
+                    return;
                 }
             }
         }
